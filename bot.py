@@ -1,7 +1,5 @@
-from ast import pattern
-from cgitb import text
-from gc import callbacks
-import json
+import asyncio
+import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -24,9 +22,13 @@ logger = logging.getLogger(__name__)
 class TelegramBot:
     def __init__(self, botToken: str) -> None:
         self.bot = ApplicationBuilder().token(botToken).build()
-        self.movie_recoms, self.yt_recoms, self.grocery_list, self.surprise_me = range(
-            4
-        )
+        (
+            self.movie_recoms,
+            self.yt_recoms,
+            self.grocery_list,
+            self.surprise_me,
+            self.cook_dish,
+        ) = range(5)
         self.START, self.GENRE_SELECT, self.END = range(3)
 
     async def __hello(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -52,6 +54,7 @@ class TelegramBot:
                     "Grocery List", callback_data=str(self.grocery_list)
                 )
             ],
+            [InlineKeyboardButton("What to cook?", callback_data=str(self.cook_dish))],
             [InlineKeyboardButton("Surprise Me", callback_data=str(self.surprise_me))],
         ]
 
@@ -100,6 +103,46 @@ class TelegramBot:
         await query.message.reply_text(f"You have chosen {data} type of movies")
         return self.END
 
+    async def selectDish(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        dish_list = [
+            "Mandi",
+            "Porotta + Beef Roast",
+            "Porotta + Afghani Chicken",
+            "Paneer",
+            "Gopi Manchurian",
+            "Chicken Chilly",
+            "Butter Chicken",
+            "Putt Kadala",
+            "Pasta",
+            "White Sauce Pasta",
+            "Uppumavu",
+            "Biriyani",
+            "Fried Rice",
+            "Broasted Chicken",
+            "Egg Curry",
+            "Stew",
+            "Kabsa",
+            "Majboos",
+        ]
+        query = update.callback_query
+        await query.answer()
+        selected_dish = random.choice(dish_list)
+        tagline = "Hol' up, let him cook now!"
+        cook_photo_list = [
+            "https://i.ytimg.com/vi/6ZLxapPgKdk/maxresdefault.jpg",
+            "https://uploads.dailydot.com/2024/04/let-him-cook-meme-.jpg?auto=compress&fm=pjpg",
+            "https://us-tuna-sounds-images.voicemod.net/747550f6-a4db-43d8-a6a4-3abc35bc6a20-1691566332151.jpg",
+            "https://media.tenor.com/C4__0sQ_-4wAAAAe/hold-up-let-him-cook.png",
+        ]
+        await query.message.reply_photo(
+            caption=tagline,
+            photo=random.choice(cook_photo_list),
+            reply_markup="",
+        )
+        await asyncio.sleep(2)
+        await query.message.reply_text(f"{selected_dish} !! 🥘😋")
+        return self.START
+
     # async def mainMenu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
     #     return self.START
 
@@ -120,8 +163,12 @@ class TelegramBot:
                     CallbackQueryHandler(
                         self.showMovieGenres,
                         pattern=("^" + str(self.movie_recoms) + "$"),
-                    )
+                    ),
+                    CallbackQueryHandler(
+                        self.selectDish, pattern=f"^{self.cook_dish}$"
+                    ),
                 ],
+                # What callbacks can be executed once the bot is in this state.
                 self.GENRE_SELECT: [
                     CallbackQueryHandler(
                         self.recommendMovies,
@@ -144,7 +191,4 @@ class TelegramBot:
 
         self.bot.add_handler(CommandHandler("hello", self.__hello))
         self.bot.add_handler(conv_handler)
-        # self.bot.add_handler(
-        #     CallbackQueryHandler(self.showMovieGenres, pattern=str(self.movie_recoms))
-        # )
         self.bot.run_polling()
