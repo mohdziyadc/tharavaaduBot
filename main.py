@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-BOT_TOKEN= os.getenv('BOT_TOKEN')
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     bot = TelegramBot(BOT_TOKEN)
     bot.run()
