@@ -80,16 +80,13 @@ class TelegramBot:
 
         keyboard.append([InlineKeyboardButton("Exit", callback_data="exit")])
         reply_markup = InlineKeyboardMarkup(keyboard)
-        # await context.user_data.update(
-        #     text="What would you like to see?", reply_markup=reply_markup
-        # )
-        # print(query)
+
         print("showMovieGenres called")
-        # await query.edit_message_text("Helloo")
+
         await query.message.reply_text(
             text="What would you like to see?", reply_markup=reply_markup
         )
-        # print(update.message.reply_text("Hello"))
+
         return self.GENRE_SELECT
 
     async def recommendMovies(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
